@@ -9,6 +9,16 @@ defmodule GameScoring.PlayerScorer do
     Score
   }
 
+  def run(game_id, callback \\ nil) do
+    Task.start_link(fn ->
+      score_players(game_id)
+
+      if is_function(callback) do
+        callback.()
+      end
+    end)
+  end
+
   def score_players(game_id) do
     query =
       from s in Stat,
@@ -59,7 +69,7 @@ defmodule GameScoring.PlayerScorer do
 
   defp save(scores) do
     {_, multi} = Enum.reduce(scores, {0, Multi.new}, &multi_query/2)
-    Repo.transaction(multi)
+    Repo.transaction(multi, timeout: :infinity)
   end
 
   defp get_all_scores do
