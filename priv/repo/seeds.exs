@@ -11,14 +11,16 @@
 # and so on) as they will fail if something goes wrong.
 defmodule Seeds do
   def seed_scores do
-    for i <- 0..100 do
+    for i <- 1..1 do
       GameScoring.Repo.insert_all(GameScoring.Stat, random_stats_for_game(i))
     end
   end
 
   defp random_stats_for_game(i) do
-    for j <- 1..500 do
-      %{player_id: (i * 500) + j, game_id: i, kills: random(), assists: random(), deaths: random()}
+    players_per_game = 5
+
+    for j <- 1..players_per_game do
+      %{player_id: ((i - 1) * players_per_game) + j, game_id: i, kills: random(), assists: random(), deaths: random()}
     end
   end
 
