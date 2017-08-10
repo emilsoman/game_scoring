@@ -8,7 +8,7 @@ defmodule Bench do
 
   import Ecto.Query
 
-  # V1 - 9 to 10.5 secs
+  # V2 - 95 seconds
   def run do
     clear()
     create_games()

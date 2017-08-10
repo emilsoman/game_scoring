@@ -11,11 +11,15 @@ defmodule GameScoring.PlayerScorer do
 
   def run(game_id, callback \\ nil) do
     Task.start_link(fn ->
-      score_players(game_id)
 
-      if is_function(callback) do
-        callback.()
+      :global.trans {Scorer, self()}, fn ->
+        score_players(game_id)
+
+        if is_function(callback) do
+          callback.()
+        end
       end
+
     end)
   end
 
