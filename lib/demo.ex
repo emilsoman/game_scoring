@@ -1,4 +1,6 @@
 defmodule Bench do
+  @game_count 50
+
   alias GameScoring.{
     Repo,
     Stat,
@@ -20,8 +22,8 @@ defmodule Bench do
     Repo.delete_all(Score)
   end
 
-  def create_games(count \\ 100) do
-    for i <- 1..count do
+  def create_games do
+    for i <- 1..@game_count do
       Repo.insert_all(Stat, random_stats_for_game(i))
     end
   end
@@ -35,8 +37,10 @@ defmodule Bench do
     game_ids = Repo.all(query)
     start_timer()
     for game_id <- game_ids do
-      PlayerScorer.run(game_id, fn -> update_timer(); IO.inspect game_id end)
+      PlayerScorer.run(game_id, fn -> IO.inspect game_id; update_timer() end)
     end
+
+    :ok
   end
 
 
@@ -53,7 +57,7 @@ defmodule Bench do
   end
 
   def start_timer do
-    Agent.start_link(fn -> %{start_time: System.monotonic_time(:millisecond), elapsed: nil} end, name: __MODULE__)
+    Agent.start_link(fn -> %{start_time: System.monotonic_time(:millisecond), elapsed: nil, count: 0} end, name: __MODULE__)
   end
 
   def elapsed_time do
@@ -64,9 +68,19 @@ defmodule Bench do
     elapsed
   end
 
+  def tracked_count do
+    Agent.get(__MODULE__, fn %{count: count} ->
+      count
+    end)
+  end
+
   def update_timer do
     Agent.update(__MODULE__, fn state ->
-      %{state | elapsed: (System.monotonic_time(:millisecond) - state.start_time)}
+      %{state | elapsed: (System.monotonic_time(:millisecond) - state.start_time), count: state.count + 1}
     end)
+
+    if tracked_count() == @game_count do
+      IO.inspect "Elapsed time: #{elapsed_time()}"
+    end
   end
 end

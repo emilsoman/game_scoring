@@ -45,8 +45,6 @@ defmodule GameScoring.PlayerScorer do
 
   defp calculate_total_score(game_stats) do
     Enum.reduce(game_stats, [], fn %{player_id: player_id, kills: k, assists: a, deaths: d}, acc ->
-      cpu_intensive_operation()
-      io_intensive_operation()
       score = (k * 10) + (a * 5) - (d * 2)
       [{player_id, {:insert, score}} | acc]
     end)
@@ -99,13 +97,5 @@ defmodule GameScoring.PlayerScorer do
 
     multi = Multi.insert(multi, "insert-score-index-#{index}", changeset)
     {index + 1, multi}
-  end
-
-  defp cpu_intensive_operation do
-    for i <- 1..100000, do: :math.sqrt(i)
-  end
-
-  defp io_intensive_operation do
-    Process.sleep(100)
   end
 end
