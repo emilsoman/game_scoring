@@ -13,7 +13,7 @@ defmodule Bench do
 
   # Results
   # 100 games with 10 players - 45.4 seconds
-  # 100 games with 40 players - ___
+  # 100 games with 40 players - 140.0 seconds
   # 100 games with 100 players - 327.0 seconds
   # 400 games with 10 players - 444.7 seconds
   def run do
