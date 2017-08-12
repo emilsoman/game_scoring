@@ -1,5 +1,6 @@
 defmodule Bench do
-  @game_count 50
+  @game_count 100
+  @players_per_game 40
 
   alias GameScoring.{
     Repo,
@@ -10,7 +11,11 @@ defmodule Bench do
 
   import Ecto.Query
 
-  # V2 - 95 seconds
+  # Results
+  # 100 games with 10 players - 45.4 seconds
+  # 100 games with 40 players - ___
+  # 100 games with 100 players - 327.0 seconds
+  # 400 games with 10 players - 444.7 seconds
   def run do
     clear()
     create_games()
@@ -37,7 +42,7 @@ defmodule Bench do
     game_ids = Repo.all(query)
     start_timer()
     for game_id <- game_ids do
-      PlayerScorer.run(game_id, fn -> IO.inspect game_id; update_timer() end)
+      PlayerScorer.run(game_id, fn -> update_count() end)
     end
 
     :ok
@@ -45,10 +50,8 @@ defmodule Bench do
 
 
   defp random_stats_for_game(i) do
-    players_per_game = 5
-
-    for j <- 1..players_per_game do
-      %{player_id: ((i - 1) * players_per_game) + j, game_id: i, kills: random(), assists: random(), deaths: random()}
+    for j <- 1..@players_per_game do
+      %{player_id: ((i - 1) * @players_per_game) + j, game_id: i, kills: random(), assists: random(), deaths: random()}
     end
   end
 
@@ -57,30 +60,20 @@ defmodule Bench do
   end
 
   def start_timer do
-    Agent.start_link(fn -> %{start_time: System.monotonic_time(:millisecond), elapsed: nil, count: 0} end, name: __MODULE__)
+    Agent.start_link(fn -> %{start_time: System.monotonic_time(:millisecond), count: 0} end, name: __MODULE__)
   end
 
-  def elapsed_time do
-    elapsed = Agent.get(__MODULE__, fn %{elapsed: elapsed} ->
-      elapsed
-    end)
-    Agent.stop(__MODULE__)
-    elapsed
-  end
-
-  def tracked_count do
-    Agent.get(__MODULE__, fn %{count: count} ->
-      count
-    end)
-  end
-
-  def update_timer do
-    Agent.update(__MODULE__, fn state ->
-      %{state | elapsed: (System.monotonic_time(:millisecond) - state.start_time), count: state.count + 1}
+  def update_count do
+    {count, start_time} = Agent.get_and_update(__MODULE__, fn state ->
+      new_count = state.count + 1
+      state = %{state | count: new_count}
+      {{new_count, state.start_time}, state}
     end)
 
-    if tracked_count() == @game_count do
-      IO.inspect "Elapsed time: #{elapsed_time()}"
+    if count == @game_count do
+      elapsed_time = System.monotonic_time(:millisecond) - start_time
+      Agent.stop(__MODULE__)
+      IO.inspect "Elapsed time: #{elapsed_time}"
     end
   end
 end
