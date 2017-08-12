@@ -13,6 +13,6 @@ defmodule GameScoring.Score do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:player_id, :rank, :score])
-    |> validate_required([:player_id, :rank, :score])
+    |> validate_required([:player_id, :score])
   end
 end

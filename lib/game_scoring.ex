@@ -13,7 +13,9 @@ defmodule GameScoring do
       # Start the endpoint when the application starts
       supervisor(GameScoring.Endpoint, []),
       # Start your own worker by calling: GameScoring.Worker.start_link(arg1, arg2, arg3)
-      # worker(GameScoring.Worker, [arg1, arg2, arg3]),
+      worker(GameScoring.ScoringQueue, []),
+      worker(GameScoring.RankingQueue, []),
+      worker(GameScoring.Scorer, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

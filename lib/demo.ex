@@ -1,11 +1,13 @@
 defmodule Bench do
   @game_count 50
+  @players_per_game 5
 
   alias GameScoring.{
     Repo,
     Stat,
     Score,
-    PlayerScorer
+    ScoringQueue,
+    RankingQueue
   }
 
   import Ecto.Query
@@ -37,7 +39,7 @@ defmodule Bench do
     game_ids = Repo.all(query)
     start_timer()
     for game_id <- game_ids do
-      PlayerScorer.run(game_id, fn -> IO.inspect game_id; update_timer() end)
+      ScoringQueue.push(game_id)
     end
 
     :ok
@@ -45,10 +47,8 @@ defmodule Bench do
 
 
   defp random_stats_for_game(i) do
-    players_per_game = 5
-
-    for j <- 1..players_per_game do
-      %{player_id: ((i - 1) * players_per_game) + j, game_id: i, kills: random(), assists: random(), deaths: random()}
+    for j <- 1..@players_per_game do
+      %{player_id: ((i - 1) * @players_per_game) + j, game_id: i, kills: random(), assists: random(), deaths: random()}
     end
   end
 
@@ -60,27 +60,24 @@ defmodule Bench do
     Agent.start_link(fn -> %{start_time: System.monotonic_time(:millisecond), elapsed: nil, count: 0} end, name: __MODULE__)
   end
 
-  def elapsed_time do
-    elapsed = Agent.get(__MODULE__, fn %{elapsed: elapsed} ->
-      elapsed
-    end)
-    Agent.stop(__MODULE__)
-    elapsed
-  end
-
-  def tracked_count do
-    Agent.get(__MODULE__, fn %{count: count} ->
-      count
-    end)
-  end
-
-  def update_timer do
-    Agent.update(__MODULE__, fn state ->
-      %{state | elapsed: (System.monotonic_time(:millisecond) - state.start_time), count: state.count + 1}
+  def update_count do
+    count = Agent.get_and_update(__MODULE__, fn state ->
+      new_count = state.count + 1
+      {new_count, %{state | count: new_count}}
     end)
 
-    if tracked_count() == @game_count do
-      IO.inspect "Elapsed time: #{elapsed_time()}"
+    if count == (@game_count * @players_per_game) do
+      RankingQueue.trigger()
     end
+  end
+
+  def print_time do
+    start_time = Agent.get(__MODULE__, fn %{start_time: start_time} ->
+      start_time
+    end)
+
+    elapsed_time = System.monotonic_time(:millisecond) - start_time
+    Agent.stop(__MODULE__)
+    IO.inspect "Elapsed time: #{elapsed_time}"
   end
 end
