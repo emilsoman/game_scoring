@@ -1,6 +1,6 @@
 defmodule Bench do
-  @game_count 50
-  @players_per_game 5
+  @game_count 800
+  @players_per_game 10
 
   alias GameScoring.{
     Repo,
@@ -12,7 +12,12 @@ defmodule Bench do
 
   import Ecto.Query
 
-  # V2 - 95 seconds
+  # 100 games with 5 players - 1.3 seconds
+  # 100 games with 10 players - 2.3 seconds
+  # 100 games with 40 players - 8.9 seconds
+  # 100 games with 100 players - 25.8 seconds
+  # 400 games with 10 players - 9.3 seconds
+  # 800 games with 10 players - 19.8 seconds
   def run do
     clear()
     create_games()
