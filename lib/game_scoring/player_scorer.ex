@@ -30,8 +30,6 @@ defmodule GameScoring.PlayerScorer do
     end
     |> Score.changeset(%{score: score})
     |> Repo.insert_or_update!
-
-    q = from s in Score, select: count(s.player_id)
   end
 
   defp calculate_score(%{kills: k, assists: a, deaths: d}) do
