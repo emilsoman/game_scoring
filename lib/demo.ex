@@ -20,7 +20,11 @@ defmodule Bench do
   # 800 games with 10 players - 19.8 seconds
   #
   # 1000 games with 10 players - 34.5 seconds (on server)
+  # 1500 games with 10 players - 55.0 seconds (on server)
   # 3000 games with 10 players - 119.4 seconds (on server)
+  #
+  # 1500 games with 10 players - 55.5 seconds (optimized server)
+  # 1500 games with 10 players - 4463.8 seconds or 1 hour and 14 minutes (with lock)
   def run do
     clear()
     create_games()
