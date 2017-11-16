@@ -9,12 +9,17 @@ defmodule GameScoring.PlayerScorer do
     Score
   }
 
+  # Given a game_id, spawns a Task that
+  # executes scoring and ranking.
+  #
+  # The callback argument is used only for benchmarking.
   def run(game_id, callback \\ nil) do
     Task.start_link(fn ->
 
       :global.trans {Scorer, self()}, fn ->
         score_players(game_id)
 
+        # This is only used for benchmarking
         if is_function(callback) do
           callback.()
         end
